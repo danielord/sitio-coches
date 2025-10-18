@@ -1,7 +1,15 @@
 import Link from 'next/link'
-import { Car, Plus, Users, BarChart3 } from 'lucide-react'
+import { Car, Plus, Users, BarChart3, LogOut } from 'lucide-react'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const session = await getServerSession(authOptions)
+  
+  if (!session) {
+    redirect('/auth/login')
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
@@ -11,7 +19,13 @@ export default function AdminPage() {
               <Car className="h-8 w-8 text-primary-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">SitioCoches Admin</span>
             </Link>
-            <Link href="/coches" className="btn-secondary">Ver Sitio</Link>
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600">Hola, {session.user?.name}</span>
+              <Link href="/coches" className="btn-secondary">Ver Sitio</Link>
+              <Link href="/api/auth/signout" className="text-gray-500 hover:text-gray-700">
+                <LogOut className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
         </div>
       </header>

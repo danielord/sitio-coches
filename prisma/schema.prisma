@@ -12,6 +12,7 @@ model Vendedor {
   nombre        String
   email         String   @unique
   telefono      String
+  password      String
   fechaRegistro DateTime @default(now())
   coches        Coche[]
   
