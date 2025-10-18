@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const email = searchParams.get('email')
+
+    if (email) {
+      const vendedor = await prisma.vendedor.findUnique({
+        where: { email },
+        include: {
+          coches: {
+            where: {
+              activo: true,
+            },
+          },
+        },
+      })
+      return NextResponse.json(vendedor ? [vendedor] : [])
+    }
+
     const vendedores = await prisma.vendedor.findMany({
       include: {
         coches: {

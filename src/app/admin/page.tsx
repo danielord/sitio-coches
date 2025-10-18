@@ -10,6 +10,16 @@ export default async function AdminPage() {
   if (!session) {
     redirect('/auth/login')
   }
+
+  const vendedor = await prisma.vendedor.findUnique({
+    where: { email: session.user?.email! },
+    include: {
+      coches: true
+    }
+  })
+
+  const totalCoches = vendedor?.coches.length || 0
+  const cochesActivos = vendedor?.coches.filter(c => c.activo).length || 0
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
@@ -43,7 +53,7 @@ export default async function AdminPage() {
               <Car className="h-8 w-8 text-primary-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Coches</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{totalCoches}</p>
               </div>
             </div>
           </div>
@@ -53,7 +63,7 @@ export default async function AdminPage() {
               <Users className="h-8 w-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Vendedores</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">1</p>
               </div>
             </div>
           </div>
@@ -63,7 +73,7 @@ export default async function AdminPage() {
               <BarChart3 className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Activos</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{cochesActivos}</p>
               </div>
             </div>
           </div>
@@ -79,7 +89,7 @@ export default async function AdminPage() {
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir Nuevo Coche
               </Link>
-              <button className="w-full btn-secondary">Ver Todos los Coches</button>
+              <Link href="/admin/dashboard" className="w-full btn-secondary text-center block">Ver Todos los Coches</Link>
             </div>
           </div>
 
