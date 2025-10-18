@@ -152,7 +152,7 @@ export default function RatingSystem({ cocheId }: RatingSystemProps) {
             
             <div className="flex-1">
               {[5, 4, 3, 2, 1].map((stars) => {
-                const count = stats[`${stars === 1 ? 'una' : stars === 2 ? 'dos' : stars === 3 ? 'tres' : stars === 4 ? 'cuatro' : 'cinco'}_estrella${stars === 1 ? '' : 's'}`] || 0
+                const count = stats[`${stars === 1 ? 'una' : stars === 2 ? 'dos' : stars === 3 ? 'tres' : stars === 4 ? 'cuatro' : 'cinco'}_estrella${stars === 1 ? '' : 's'}` as keyof RatingStats] || 0
                 const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0
                 
                 return (

@@ -14,8 +14,8 @@ export default function AnimatedBackground() {
           key={i}
           className="absolute w-2 h-2 bg-blue-400/20 rounded-full"
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
+            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
           }}
           animate={{
             x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
