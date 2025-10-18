@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { generarDescripcionCoche } from '@/lib/openai'
+import { moderarContenido } from '@/lib/cloudflare-ai'
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,6 +45,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
+    // Generar descripción automática si no se proporciona
+    let descripcion = body.descripcion
+    if (!descripcion) {
+      descripcion = await generarDescripcionCoche({
+        marca: body.marca,
+        modelo: body.modelo,
+        año: body.año,
+        kilometraje: body.kilometraje,
+        combustible: body.combustible,
+        transmision: body.transmision,
+        color: body.color,
+      })
+    }
+    
+    // Moderar contenido
+    const moderacion = await moderarContenido(descripcion)
+    if (!moderacion.esApropiado) {
+      return NextResponse.json(
+        { error: 'Contenido inapropiado detectado' },
+        { status: 400 }
+      )
+    }
+    
     const coche = await prisma.coche.create({
       data: {
         marca: body.marca,
@@ -53,7 +78,7 @@ export async function POST(request: NextRequest) {
         combustible: body.combustible,
         transmision: body.transmision,
         color: body.color,
-        descripcion: body.descripcion,
+        descripcion,
         imagenes: body.imagenes || [],
         vendedorId: body.vendedorId,
       },

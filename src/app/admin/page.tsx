@@ -61,10 +61,10 @@ export default function AdminPage() {
             <h2 className="text-xl font-semibold mb-4">Gestión de Coches</h2>
             <p className="text-gray-600 mb-4">Añade, edita o elimina anuncios de coches</p>
             <div className="space-y-3">
-              <button className="w-full btn-primary flex items-center justify-center">
+              <Link href="/admin/nuevo" className="w-full btn-primary flex items-center justify-center">
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir Nuevo Coche
-              </button>
+              </Link>
               <button className="w-full btn-secondary">Ver Todos los Coches</button>
             </div>
           </div>
