@@ -2,15 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Car, ArrowLeft, Phone, Mail, Calendar, Gauge, Fuel, Settings } from 'lucide-react'
+import { Car, ArrowLeft, Phone, Mail, Calendar, Gauge, Fuel, Settings, MessageCircle, Scale } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
 import ImageGallery from '@/components/ImageGallery'
 import AnimatedSection from '@/components/AnimatedSection'
+import FavoriteButton from '@/components/FavoriteButton'
+import ContactModal from '@/components/ContactModal'
+import { useComparator } from '@/components/CarComparator'
 
 export default function CocheDetallePage({ params }: { params: { id: string } }) {
   const [coche, setCoche] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showContactModal, setShowContactModal] = useState(false)
+  const { addToCompare } = useComparator()
 
   useEffect(() => {
     const loadCoche = async () => {

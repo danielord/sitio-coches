@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Car, Search, Users, Shield } from 'lucide-react'
+import { Car, Search, Users, Shield, Heart } from 'lucide-react'
 import HeroSlideshow from '@/components/HeroSlideshow'
 import AnimatedBackground from '@/components/AnimatedBackground'
 import AnimatedSection from '@/components/AnimatedSection'
@@ -19,6 +19,10 @@ export default function HomePage() {
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link href="/coches" className="text-gray-500 hover:text-gray-900 transition-colors">Coches</Link>
+              <Link href="/favoritos" className="text-gray-500 hover:text-gray-900 transition-colors flex items-center">
+                <Heart className="h-4 w-4 mr-1" />
+                Favoritos
+              </Link>
               <Link href="/auth/registro" className="text-gray-500 hover:text-gray-900 transition-colors">Vender</Link>
               <Link href="/auth/login" className="btn-primary">Iniciar Sesión</Link>
             </nav>
