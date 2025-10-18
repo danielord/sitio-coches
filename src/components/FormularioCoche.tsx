@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Wand2, Upload, Loader2, X } from 'lucide-react'
 import Image from 'next/image'
+import { api } from '@/lib/api'
+import { authClient } from '@/lib/auth-client'
 
 export default function FormularioCoche() {
   const [formData, setFormData] = useState({
@@ -24,21 +25,21 @@ export default function FormularioCoche() {
   const [guardando, setGuardando] = useState(false)
   const [imagenes, setImagenes] = useState<string[]>([])
   
-  const { data: session } = useSession()
+  const [auth, setAuth] = useState(authClient.getAuth())
   const router = useRouter()
+
+  useEffect(() => {
+    if (!auth.user) {
+      router.push('/auth/login')
+    }
+  }, [auth.user, router])
 
   const generarDescripcion = async () => {
     if (!formData.marca || !formData.modelo) return
     
     setGenerandoDescripcion(true)
     try {
-      const response = await fetch('/api/ai/descripcion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      
-      const data = await response.json()
+      const data = await api.generateDescription(formData)
       setFormData(prev => ({ ...prev, descripcion: data.descripcion }))
     } catch (error) {
       console.error('Error:', error)
@@ -49,17 +50,9 @@ export default function FormularioCoche() {
   const subirImagen = async (file: File) => {
     setSubiendoImagen(true)
     try {
-      const formDataImg = new FormData()
-      formDataImg.append('file', file)
+      const data = await api.uploadImage(file)
       
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataImg,
-      })
-      
-      const data = await response.json()
-      
-      if (response.ok) {
+      if (data.url) {
         setImagenes(prev => [...prev, data.url])
         alert('Imagen subida correctamente')
       } else {
@@ -77,7 +70,7 @@ export default function FormularioCoche() {
   }
 
   const guardarCoche = async () => {
-    if (!session?.user?.email) {
+    if (!auth.user?.email) {
       alert('Debes estar autenticado')
       return
     }
@@ -85,8 +78,7 @@ export default function FormularioCoche() {
     setGuardando(true)
     try {
       // Obtener vendedor por email
-      const vendedorResponse = await fetch(`/api/vendedores?email=${session.user.email}`)
-      const vendedores = await vendedorResponse.json()
+      const vendedores = await api.getVendedores(auth.user.email)
       const vendedor = vendedores[0]
 
       if (!vendedor) {
@@ -94,25 +86,16 @@ export default function FormularioCoche() {
         return
       }
 
-      const response = await fetch('/api/coches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          precio: parseFloat(formData.precio),
-          kilometraje: parseInt(formData.kilometraje),
-          imagenes,
-          vendedorId: vendedor.id,
-        }),
+      await api.createCoche({
+        ...formData,
+        precio: parseFloat(formData.precio),
+        kilometraje: parseInt(formData.kilometraje),
+        imagenes,
+        vendedorId: vendedor.id,
       })
 
-      if (response.ok) {
-        alert('Coche publicado correctamente')
-        router.push('/admin')
-      } else {
-        const error = await response.json()
-        alert(error.error || 'Error al guardar')
-      }
+      alert('Coche publicado correctamente')
+      router.push('/admin')
     } catch (error) {
       console.error('Error:', error)
       alert('Error al guardar')

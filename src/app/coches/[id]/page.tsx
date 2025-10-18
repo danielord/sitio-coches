@@ -1,25 +1,41 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { Car, ArrowLeft, Phone, Mail, Calendar, Gauge, Fuel, Settings } from 'lucide-react'
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
+'use client'
 
-export default async function CocheDetallePage({ params }: { params: { id: string } }) {
-  const coche = await prisma.coche.findUnique({
-    where: { id: params.id, activo: true },
-    include: {
-      vendedor: {
-        select: {
-          nombre: true,
-          telefono: true,
-          email: true,
-        },
-      },
-    },
-  })
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Car, ArrowLeft, Phone, Mail, Calendar, Gauge, Fuel, Settings } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { api } from '@/lib/api'
+import ImageGallery from '@/components/ImageGallery'
+import AnimatedSection from '@/components/AnimatedSection'
+
+export default function CocheDetallePage({ params }: { params: { id: string } }) {
+  const [coche, setCoche] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadCoche = async () => {
+      try {
+        const data = await api.getCoche(params.id)
+        setCoche(data)
+      } catch (error) {
+        console.error('Error loading coche:', error)
+      }
+      setLoading(false)
+    }
+
+    loadCoche()
+  }, [params.id])
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div>Cargando...</div>
+    </div>
+  }
 
   if (!coche) {
-    notFound()
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div>Coche no encontrado</div>
+    </div>
   }
 
   return (
@@ -41,38 +57,13 @@ export default async function CocheDetallePage({ params }: { params: { id: strin
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Imágenes */}
-          <div>
-            {coche.imagenes.length > 0 ? (
-              <div className="space-y-4">
-                <Image
-                  src={coche.imagenes[0]}
-                  alt={`${coche.marca} ${coche.modelo}`}
-                  width={600}
-                  height={400}
-                  className="w-full rounded-lg object-cover"
-                />
-                {coche.imagenes.length > 1 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {coche.imagenes.slice(1, 4).map((img, index) => (
-                      <Image
-                        key={index}
-                        src={img}
-                        alt={`${coche.marca} ${coche.modelo} ${index + 2}`}
-                        width={200}
-                        height={150}
-                        className="rounded-lg object-cover"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-gray-200 rounded-lg h-96 flex items-center justify-center">
-                <Car className="h-24 w-24 text-gray-400" />
-              </div>
-            )}
-          </div>
+          {/* Galería de Imágenes */}
+          <AnimatedSection>
+            <ImageGallery
+              images={coche.imagenes}
+              alt={`${coche.marca} ${coche.modelo}`}
+            />
+          </AnimatedSection>
 
           {/* Información */}
           <div>

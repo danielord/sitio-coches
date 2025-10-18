@@ -1,29 +1,43 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Car, ArrowLeft, Edit, Trash2, Eye } from 'lucide-react'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
+import { api } from '@/lib/api'
 import Image from 'next/image'
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session) {
-    redirect('/auth/login')
-  }
+export default function DashboardPage() {
+  const [auth, setAuth] = useState(authClient.getAuth())
+  const [coches, setCoches] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
-  const vendedor = await prisma.vendedor.findUnique({
-    where: { email: session.user?.email! },
-    include: {
-      coches: {
-        orderBy: { fechaCreacion: 'desc' }
-      }
+  useEffect(() => {
+    if (!auth.user) {
+      router.push('/auth/login')
+      return
     }
-  })
 
-  if (!vendedor) {
-    redirect('/auth/login')
+    const loadCoches = async () => {
+      try {
+        const vendedores = await api.getVendedores(auth.user!.email)
+        const vendedor = vendedores[0]
+        if (vendedor?.coches) {
+          setCoches(vendedor.coches)
+        }
+      } catch (error) {
+        console.error('Error loading coches:', error)
+      }
+      setLoading(false)
+    }
+
+    loadCoches()
+  }, [auth.user, router])
+
+  if (!auth.user || loading) {
+    return <div>Cargando...</div>
   }
 
   return (
@@ -54,7 +68,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {vendedor.coches.length === 0 ? (
+        {coches.length === 0 ? (
           <div className="text-center py-12">
             <Car className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes coches publicados</h3>
@@ -65,7 +79,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {vendedor.coches.map((coche) => (
+            {coches.map((coche: any) => (
               <div key={coche.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="md:flex">
                   <div className="md:w-48 h-48 bg-gray-200 flex items-center justify-center">

@@ -1,16 +1,10 @@
-import { withAuth } from 'next-auth/middleware'
+// Middleware deshabilitado para exportación estática
+// La autenticación se manejará en el cliente
 
-export default withAuth(
-  function middleware(req) {
-    // Middleware logic here if needed
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token
-    },
-  }
-)
+export function middleware() {
+  // No middleware for static export
+}
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: []
 }

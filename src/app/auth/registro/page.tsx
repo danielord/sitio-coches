@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Car, Mail, Lock, User, Phone } from 'lucide-react'
+import { api } from '@/lib/api'
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
@@ -20,19 +21,9 @@ export default function RegistroPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/registro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (response.ok) {
-        alert('Registro exitoso. Ahora puedes iniciar sesión.')
-        router.push('/auth/login')
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Error en el registro')
-      }
+      await api.register(formData)
+      alert('Registro exitoso. Ahora puedes iniciar sesión.')
+      router.push('/auth/login')
     } catch (error) {
       alert('Error en el registro')
     }

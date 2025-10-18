@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Car, Mail, Lock } from 'lucide-react'
+import { api } from '@/lib/api'
+import { authClient } from '@/lib/auth-client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -16,17 +17,19 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
-
-    if (result?.ok) {
-      router.push('/admin')
-    } else {
-      alert('Credenciales incorrectas')
+    try {
+      const result = await api.login({ email, password })
+      
+      if (result.token) {
+        authClient.setAuth(result.token, result.user)
+        router.push('/admin')
+      } else {
+        alert('Credenciales incorrectas')
+      }
+    } catch (error) {
+      alert('Error en el login')
     }
+    
     setLoading(false)
   }
 

@@ -1,25 +1,50 @@
-import Link from 'next/link'
-import { Car, Plus, Users, BarChart3, LogOut } from 'lucide-react'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+'use client'
 
-export default async function AdminPage() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session) {
-    redirect('/auth/login')
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Car, Plus, Users, BarChart3, LogOut } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
+import { api } from '@/lib/api'
+
+export default function AdminPage() {
+  const [auth, setAuth] = useState(authClient.getAuth())
+  const [stats, setStats] = useState({ totalCoches: 0, cochesActivos: 0 })
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!auth.user) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Cargar estadísticas
+    const loadStats = async () => {
+      try {
+        const vendedores = await api.getVendedores(auth.user!.email)
+        const vendedor = vendedores[0]
+        if (vendedor?.coches) {
+          setStats({
+            totalCoches: vendedor.coches.length,
+            cochesActivos: vendedor.coches.filter((c: any) => c.activo).length
+          })
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error)
+      }
+    }
+
+    loadStats()
+  }, [auth.user, router])
+
+  const handleLogout = () => {
+    authClient.clearAuth()
+    router.push('/')
   }
 
-  const vendedor = await prisma.vendedor.findUnique({
-    where: { email: session.user?.email! },
-    include: {
-      coches: true
-    }
-  })
-
-  const totalCoches = vendedor?.coches.length || 0
-  const cochesActivos = vendedor?.coches.filter(c => c.activo).length || 0
+  if (!auth.user) {
+    return <div>Cargando...</div>
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
@@ -30,11 +55,11 @@ export default async function AdminPage() {
               <span className="ml-2 text-xl font-bold text-gray-900">SitioCoches Admin</span>
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-gray-600">Hola, {session.user?.name}</span>
+              <span className="text-gray-600">Hola, {auth.user.name}</span>
               <Link href="/coches" className="btn-secondary">Ver Sitio</Link>
-              <Link href="/api/auth/signout" className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
                 <LogOut className="h-5 w-5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -53,7 +78,7 @@ export default async function AdminPage() {
               <Car className="h-8 w-8 text-primary-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Coches</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCoches}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalCoches}</p>
               </div>
             </div>
           </div>
@@ -73,7 +98,7 @@ export default async function AdminPage() {
               <BarChart3 className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Activos</p>
-                <p className="text-2xl font-bold text-gray-900">{cochesActivos}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.cochesActivos}</p>
               </div>
             </div>
           </div>
