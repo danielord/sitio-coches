@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendedor {
+  id            String   @id @default(cuid())
+  nombre        String
+  email         String   @unique
+  telefono      String
+  fechaRegistro DateTime @default(now())
+  coches        Coche[]
+  
+  @@map("vendedores")
+}
+
+model Coche {
+  id           String      @id @default(cuid())
+  marca        String
+  modelo       String
+  año          Int
+  precio       Float
+  kilometraje  Int
+  combustible  Combustible
+  transmision  Transmision
+  color        String
+  descripcion  String      @db.Text
+  imagenes     String[]
+  vendedorId   String
+  vendedor     Vendedor    @relation(fields: [vendedorId], references: [id])
+  fechaCreacion DateTime   @default(now())
+  activo       Boolean     @default(true)
+  
+  @@map("coches")
+}
+
+enum Combustible {
+  Gasolina
+  Diesel
+  Electrico
+  Hibrido
+}
+
+enum Transmision {
+  Manual
+  Automatica
+}
