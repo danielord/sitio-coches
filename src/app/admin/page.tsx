@@ -126,7 +126,7 @@ export default function AdminPage() {
                 <Plus className="h-4 w-4 mr-2" />
                 Registrar Vendedor
               </button>
-              <button className="w-full btn-secondary">Ver Todos los Vendedores</button>
+              <Link href="/admin/estadisticas" className="w-full btn-secondary text-center block">Ver Estadísticas</Link>
             </div>
           </div>
         </div>

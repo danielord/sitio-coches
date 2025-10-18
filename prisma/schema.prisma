@@ -35,8 +35,22 @@ model Coche {
   vendedor     Vendedor    @relation(fields: [vendedorId], references: [id])
   fechaCreacion DateTime   @default(now())
   activo       Boolean     @default(true)
+  valoraciones Valoracion[]
   
   @@map("coches")
+}
+
+model Valoracion {
+  id          String   @id @default(cuid())
+  puntuacion  Int      // 1-5 estrellas
+  comentario  String?  @db.Text
+  nombreUsuario String
+  emailUsuario  String
+  cocheId     String
+  coche       Coche    @relation(fields: [cocheId], references: [id])
+  fechaCreacion DateTime @default(now())
+  
+  @@map("valoraciones")
 }
 
 enum Combustible {

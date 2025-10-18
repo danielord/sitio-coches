@@ -9,6 +9,7 @@ import ImageGallery from '@/components/ImageGallery'
 import AnimatedSection from '@/components/AnimatedSection'
 import FavoriteButton from '@/components/FavoriteButton'
 import ContactModal from '@/components/ContactModal'
+import RatingSystem from '@/components/RatingSystem'
 import { useComparator } from '@/components/CarComparator'
 
 export default function CocheDetallePage({ params }: { params: { id: string } }) {

@@ -5,6 +5,7 @@ import { vendedores } from './api/vendedores'
 import { auth } from './api/auth'
 import { ai } from './api/ai'
 import { upload } from './api/upload'
+import { valoraciones } from './api/valoraciones'
 
 type Bindings = {
   DB: D1Database
@@ -28,6 +29,7 @@ app.route('/api/vendedores', vendedores)
 app.route('/api/auth', auth)
 app.route('/api/ai', ai)
 app.route('/api/upload', upload)
+app.route('/api/valoraciones', valoraciones)
 
 app.get('/', (c) => {
   return c.json({ message: 'SitioCoches API - Cloudflare Workers' })
