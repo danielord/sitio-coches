@@ -94,3 +94,7 @@ pids
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Wrangler
+wrangler.toml
+.wrangler/
