@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Car, ArrowLeft } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
-import VendorStats from '@/components/VendorStats'
+// import VendorStats from '@/components/VendorStats' // Temporarily disabled
 
 export default function EstadisticasPage() {
   const [auth, setAuth] = useState(authClient.getAuth())
@@ -44,7 +44,10 @@ export default function EstadisticasPage() {
           <p className="text-gray-600">Analiza el rendimiento de tus anuncios</p>
         </div>
 
-        <VendorStats vendedorId={auth.user.id} />
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Estadísticas de Vendedores</h3>
+          <p className="text-gray-600">Funcionalidad temporalmente deshabilitada</p>
+        </div>
       </div>
     </div>
   )
