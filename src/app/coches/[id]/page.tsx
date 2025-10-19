@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Car, ArrowLeft, Phone, Mail, Calendar, Gauge, Fuel, Settings, MessageCircle, Scale } from 'lucide-react'
