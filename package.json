@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:worker": "cd workers && wrangler dev --local",
     "dev:full": "concurrently \"npm run dev:worker\" \"npm run dev\"",
-    "build": "node build.js",
+    "build": "NEXT_CACHE=false node build.js",
     "start": "next start",
     "lint": "next lint"
   },
