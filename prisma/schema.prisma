@@ -7,60 +7,86 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Vendedor {
-  id            String   @id @default(cuid())
-  nombre        String
-  email         String   @unique
-  telefono      String
-  password      String
-  fechaRegistro DateTime @default(now())
-  coches        Coche[]
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  firstName         String
+  lastName          String
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  avatar            String?
+  userType          UserType @default(BUYER)
+  emailNotifications Boolean @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
-  @@map("vendedores")
+  cars              Car[]
+  favorites         Favorite[]
+  messages          Message[]
+  
+  @@map("users")
 }
 
-model Coche {
-  id           String      @id @default(cuid())
+model Car {
+  id           String   @id @default(cuid())
   marca        String
   modelo       String
-  año          Int
+  anio         Int
   precio       Float
   kilometraje  Int
-  combustible  Combustible
-  transmision  Transmision
-  color        String
-  descripcion  String      @db.Text
-  imagenes     String[]
-  vendedorId   String
-  vendedor     Vendedor    @relation(fields: [vendedorId], references: [id])
-  fechaCreacion DateTime   @default(now())
-  activo       Boolean     @default(true)
-  valoraciones Valoracion[]
+  combustible  String
+  imagen       String?
+  descripcion  String
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
-  @@map("coches")
-}
-
-model Valoracion {
-  id          String   @id @default(cuid())
-  puntuacion  Int      // 1-5 estrellas
-  comentario  String?  @db.Text
-  nombreUsuario String
-  emailUsuario  String
-  cocheId     String
-  coche       Coche    @relation(fields: [cocheId], references: [id])
-  fechaCreacion DateTime @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites    Favorite[]
   
-  @@map("valoraciones")
+  @@map("cars")
 }
 
-enum Combustible {
-  Gasolina
-  Diesel
-  Electrico
-  Hibrido
+model Favorite {
+  id     String @id @default(cuid())
+  userId String
+  carId  String
+  
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car    Car  @relation(fields: [carId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, carId])
+  @@map("favorites")
 }
 
-enum Transmision {
-  Manual
-  Automatica
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  carId     String?
+  createdAt DateTime @default(now())
+  
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("messages")
+}
+
+model EmailNotification {
+  id        String   @id @default(cuid())
+  email     String
+  subject   String
+  content   String
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@map("email_notifications")
+}
+
+enum UserType {
+  BUYER
+  SELLER
 }

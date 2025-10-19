@@ -110,6 +110,10 @@ export default function AdminPage() {
             <h2 className="text-xl font-semibold mb-4">Gestión de Coches</h2>
             <p className="text-gray-600 mb-4">Añade, edita o elimina anuncios de coches</p>
             <div className="space-y-3">
+              <Link href="/perfil" className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 flex items-center justify-center mb-2">
+                <Users className="h-4 w-4 mr-2" />
+                Editar Perfil
+              </Link>
               <Link href="/admin/nuevo" className="w-full btn-primary flex items-center justify-center">
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir Nuevo Coche
