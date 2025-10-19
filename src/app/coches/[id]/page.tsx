@@ -12,6 +12,10 @@ import ContactModal from '@/components/ContactModal'
 import RatingSystem from '@/components/RatingSystem'
 import { useComparator } from '@/components/CarComparator'
 
+export async function generateStaticParams() {
+  return []
+}
+
 export default function CocheDetallePage({ params }: { params: { id: string } }) {
   const [coche, setCoche] = useState<any>(null)
   const [loading, setLoading] = useState(true)
