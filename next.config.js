@@ -15,8 +15,11 @@ const nextConfig = {
       ? 'https://sitio-coches-api.your-subdomain.workers.dev'
       : 'http://localhost:8787'
   },
-  experimental: {
-    webpackBuildWorker: true
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false
+    }
+    return config
   }
 }
 
