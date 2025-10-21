@@ -103,7 +103,7 @@ export default function SearchFilters({ onFiltersChange, loading }: SearchFilter
             {/* Precio */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Precio mín (€)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Precio mín (MXN)</label>
                 <input
                   type="number"
                   value={filters.precioMin}
@@ -113,7 +113,7 @@ export default function SearchFilters({ onFiltersChange, loading }: SearchFilter
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Precio máx (€)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Precio máx (MXN)</label>
                 <input
                   type="number"
                   value={filters.precioMax}

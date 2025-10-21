@@ -12,8 +12,12 @@ interface FavoriteButtonProps {
 
 export default function FavoriteButton({ cocheId, className = '' }: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
+    // Verificar usuario y favoritos
+    const userData = localStorage.getItem('user')
+    setUser(userData ? JSON.parse(userData) : null)
     setIsFavorite(favoritesManager.isFavorite(cocheId))
 
     const handleFavoritesChange = (event: CustomEvent) => {
@@ -31,6 +35,11 @@ export default function FavoriteButton({ cocheId, className = '' }: FavoriteButt
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    if (!user) {
+      alert('Debes iniciar sesión para agregar favoritos')
+      return
+    }
     
     const newState = favoritesManager.toggleFavorite(cocheId)
     setIsFavorite(newState)

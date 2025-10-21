@@ -28,7 +28,7 @@ export default function FavoritosPage() {
     }
   }, [])
 
-  const loadFavorites = async () => {
+  const loadFavorites = () => {
     setLoading(true)
     try {
       const favoriteIds = favoritesManager.getFavorites()
@@ -38,11 +38,11 @@ export default function FavoritosPage() {
         return
       }
 
-      const promises = favoriteIds.map(id => api.getCoche(id).catch(() => null))
-      const results = await Promise.all(promises)
-      const validCoches = results.filter(Boolean)
+      // Cargar coches desde localStorage
+      const allCars = JSON.parse(localStorage.getItem('cars') || '[]')
+      const favoriteCoches = allCars.filter((car: any) => favoriteIds.includes(car.id))
       
-      setFavoriteCoches(validCoches)
+      setFavoriteCoches(favoriteCoches)
     } catch (error) {
       console.error('Error loading favorites:', error)
     }
@@ -55,8 +55,8 @@ export default function FavoritosPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center">
-              <Car className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">SitioCoches</span>
+              <img src="/logo.jpg" alt="V&R Autos" className="h-10 w-10 rounded-full" />
+              <span className="ml-2 text-xl font-bold text-gray-900">V&R Autos</span>
             </Link>
             <Link href="/coches" className="btn-secondary flex items-center">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -116,12 +116,10 @@ export default function FavoritosPage() {
                   </div>
 
                   <div className="h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
-                    {coche.imagenes.length > 0 ? (
-                      <Image
-                        src={coche.imagenes[0]}
+                    {coche.imagen || (coche.imagenes && coche.imagenes.length > 0) ? (
+                      <img
+                        src={coche.imagen || coche.imagenes[0]}
                         alt={`${coche.marca} ${coche.modelo}`}
-                        width={300}
-                        height={200}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
@@ -137,10 +135,10 @@ export default function FavoritosPage() {
                       {coche.kilometraje.toLocaleString()} km • {coche.combustible}
                     </p>
                     <p className="text-primary-600 font-bold text-xl mt-2">
-                      €{coche.precio.toLocaleString()}
+                      ${coche.precio.toLocaleString()} MXN
                     </p>
                     <Link
-                      href={`/coches/${coche.id}`}
+                      href={`/coche?id=${coche.id}`}
                       className="w-full mt-3 btn-primary text-center block transform hover:scale-105 transition-transform duration-200"
                     >
                       Ver Detalles

@@ -30,22 +30,35 @@ export default function RegistroPage() {
     }
     
     setIsLoading(true)
+    
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
+      // Verificar si el email ya existe
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const existingUser = users.find((user: any) => user.email === formData.email)
       
-      if (response.ok) {
-        alert('Registro exitoso')
-        window.location.href = '/login'
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Error en el registro')
+      if (existingUser) {
+        alert('Ya existe un usuario con este email')
+        setIsLoading(false)
+        return
       }
+
+      // Crear nuevo usuario
+      const newUser = {
+        id: Date.now().toString(),
+        ...formData,
+        userType: formData.userType === 'BUYER' ? 'comprador' : formData.userType === 'SELLER' ? 'vendedor' : 'administrador',
+        createdAt: new Date().toISOString(),
+        isActive: true
+      }
+
+      users.push(newUser)
+      localStorage.setItem('users', JSON.stringify(users))
+      
+      alert('Registro exitoso')
+      window.location.href = '/login'
     } catch (error) {
-      alert('Error de conexión')
+      console.error('Error en registro:', error)
+      alert('Error al registrar usuario')
     } finally {
       setIsLoading(false)
     }
@@ -65,7 +78,7 @@ export default function RegistroPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center">
-              <Car className="h-8 w-8 text-blue-600" />
+              <img src="/logo.jpg" alt="V&R Autos" className="h-10 w-10 rounded-full" />
               <span className="ml-2 text-xl font-bold text-gray-900">V&R Autos</span>
             </Link>
           </div>
@@ -236,6 +249,7 @@ export default function RegistroPage() {
               >
                 <option value="BUYER">Comprador</option>
                 <option value="SELLER">Vendedor</option>
+                <option value="ADMIN">Administrador</option>
               </select>
             </div>
 

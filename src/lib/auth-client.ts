@@ -15,8 +15,23 @@ export const authClient = {
   getAuth(): AuthState {
     if (typeof window === 'undefined') return { user: null, token: null }
     
-    const token = localStorage.getItem('auth_token')
-    const user = localStorage.getItem('auth_user')
+    // Intentar obtener del nuevo formato
+    let token = localStorage.getItem('auth_token')
+    let user = localStorage.getItem('auth_user')
+    
+    // Si no existe, intentar migrar del formato antiguo
+    if (!user) {
+      const oldUser = localStorage.getItem('user')
+      if (oldUser) {
+        const userData = JSON.parse(oldUser)
+        // Migrar al nuevo formato
+        this.setAuth('fake-token', userData)
+        // Limpiar formato antiguo
+        localStorage.removeItem('user')
+        token = 'fake-token'
+        user = oldUser
+      }
+    }
     
     return {
       token,

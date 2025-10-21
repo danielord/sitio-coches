@@ -6,20 +6,32 @@ export interface Favorite {
 }
 
 export const favoritesManager = {
+  getCurrentUser(): string | null {
+    if (typeof window === 'undefined') return null
+    const userData = localStorage.getItem('user')
+    return userData ? JSON.parse(userData).email : null
+  },
+
   getFavorites(): string[] {
     if (typeof window === 'undefined') return []
     
-    const favorites = localStorage.getItem('car_favorites')
+    const userEmail = this.getCurrentUser()
+    if (!userEmail) return []
+    
+    const favorites = localStorage.getItem(`car_favorites_${userEmail}`)
     return favorites ? JSON.parse(favorites) : []
   },
 
   addFavorite(cocheId: string): void {
     if (typeof window === 'undefined') return
     
+    const userEmail = this.getCurrentUser()
+    if (!userEmail) return
+    
     const favorites = this.getFavorites()
     if (!favorites.includes(cocheId)) {
       favorites.push(cocheId)
-      localStorage.setItem('car_favorites', JSON.stringify(favorites))
+      localStorage.setItem(`car_favorites_${userEmail}`, JSON.stringify(favorites))
       
       // Disparar evento personalizado
       window.dispatchEvent(new CustomEvent('favoritesChanged', { 
@@ -31,9 +43,12 @@ export const favoritesManager = {
   removeFavorite(cocheId: string): void {
     if (typeof window === 'undefined') return
     
+    const userEmail = this.getCurrentUser()
+    if (!userEmail) return
+    
     const favorites = this.getFavorites()
     const newFavorites = favorites.filter(id => id !== cocheId)
-    localStorage.setItem('car_favorites', JSON.stringify(newFavorites))
+    localStorage.setItem(`car_favorites_${userEmail}`, JSON.stringify(newFavorites))
     
     // Disparar evento personalizado
     window.dispatchEvent(new CustomEvent('favoritesChanged', { 
@@ -46,6 +61,12 @@ export const favoritesManager = {
   },
 
   toggleFavorite(cocheId: string): boolean {
+    const userEmail = this.getCurrentUser()
+    if (!userEmail) {
+      alert('Debes iniciar sesión para agregar favoritos')
+      return false
+    }
+    
     const isFav = this.isFavorite(cocheId)
     if (isFav) {
       this.removeFavorite(cocheId)

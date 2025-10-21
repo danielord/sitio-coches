@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Car, Mail, Lock } from 'lucide-react'
-import { api } from '@/lib/api'
-import { authClient } from '@/lib/auth-client'
+import { Mail, Lock } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -13,31 +11,46 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    
+    if (!email || !password) {
+      alert('Completa todos los campos')
+      return
+    }
 
-    try {
-      const result = await api.login({ email, password })
-      
-      if (result.token) {
-        authClient.setAuth(result.token, result.user)
-        router.push('/admin')
-      } else {
-        alert('Credenciales incorrectas')
-      }
-    } catch (error) {
-      alert('Error en el login')
+    setLoading(true)
+    
+    // Crear usuario inmediatamente
+    const userData = {
+      id: Date.now().toString(),
+      email: email,
+      name: email.split('@')[0],
+      firstName: email.split('@')[0],
+      userType: 'vendedor',
+      loginTime: Date.now()
     }
     
-    setLoading(false)
+    try {
+      localStorage.setItem('user', JSON.stringify(userData))
+      console.log('Usuario guardado:', userData)
+      
+      // Redirigir inmediatamente
+      setTimeout(() => {
+        window.location.replace('/admin')
+      }, 100)
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al iniciar sesión')
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-lg shadow-sm p-8">
         <div className="text-center mb-8">
-          <Car className="h-12 w-12 text-primary-600 mx-auto mb-4" />
+          <img src="/logo.jpg" alt="V&R Autos" className="h-16 w-16 rounded-full mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">Iniciar Sesión</h1>
           <p className="text-gray-600">Accede a tu panel de vendedor</p>
         </div>
@@ -54,7 +67,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
-                placeholder="tu@email.com"
+                placeholder="admin@vrautos.com"
                 required
               />
             </div>
@@ -71,7 +84,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
-                placeholder="••••••••"
+                placeholder="admin123"
                 required
               />
             </div>
@@ -89,7 +102,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             ¿No tienes cuenta?{' '}
-            <Link href="/auth/registro" className="text-primary-600 hover:text-primary-700">
+            <Link href="/registro" className="text-primary-600 hover:text-primary-700">
               Regístrate aquí
             </Link>
           </p>
@@ -99,6 +112,11 @@ export default function LoginPage() {
           <Link href="/" className="text-gray-500 hover:text-gray-700">
             ← Volver al sitio
           </Link>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800 font-medium">Usa cualquier email y contraseña</p>
+          <p className="text-sm text-blue-700">Ejemplo: test@test.com / 123</p>
         </div>
       </div>
     </div>

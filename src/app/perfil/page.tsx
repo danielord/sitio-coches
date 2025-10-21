@@ -44,23 +44,13 @@ export default function PerfilPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, userId: user.id })
-      })
-      
-      if (response.ok) {
-        const updatedUser = await response.json()
-        setUser(updatedUser.user)
-        localStorage.setItem('user', JSON.stringify(updatedUser.user))
-        setIsEditing(false)
-        alert('Perfil actualizado exitosamente')
-      } else {
-        alert('Error al actualizar perfil')
-      }
+      const updatedUser = { ...user, ...formData }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setIsEditing(false)
+      alert('Perfil actualizado exitosamente')
     } catch (error) {
-      alert('Error de conexión')
+      alert('Error al actualizar perfil')
     } finally {
       setIsLoading(false)
     }

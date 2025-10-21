@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Wand2, Upload, Loader2, X } from 'lucide-react'
-import Image from 'next/image'
+import { Wand2, Upload, Loader2, X, Edit } from 'lucide-react'
 import { api } from '@/lib/api'
 import { authClient } from '@/lib/auth-client'
+import { useAuthRequired } from '@/hooks/useAuthRequired'
+import ImageEditor from './ImageEditor'
 
 export default function FormularioCoche() {
   const [formData, setFormData] = useState({
@@ -18,51 +19,114 @@ export default function FormularioCoche() {
     transmision: 'Manual',
     color: '',
     descripcion: '',
+    enSlideshow: false,
   })
   
   const [generandoDescripcion, setGenerandoDescripcion] = useState(false)
   const [subiendoImagen, setSubiendoImagen] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [imagenes, setImagenes] = useState<string[]>([])
+  const [editingImage, setEditingImage] = useState<File | null>(null)
+  const [showEditor, setShowEditor] = useState(false)
   
-  const [auth, setAuth] = useState(authClient.getAuth())
+  const { user, loading } = useAuthRequired()
   const router = useRouter()
 
-  useEffect(() => {
-    if (!auth.user) {
-      router.push('/auth/login')
-    }
-  }, [auth.user, router])
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-sm">
+        <div className="text-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Verificando sesión...</p>
+        </div>
+      </div>
+    )
+  }
 
   const generarDescripcion = async () => {
     if (!formData.marca || !formData.modelo) return
     
     setGenerandoDescripcion(true)
-    try {
-      const data = await api.generateDescription(formData)
-      setFormData(prev => ({ ...prev, descripcion: data.descripcion }))
-    } catch (error) {
-      console.error('Error:', error)
-    }
-    setGenerandoDescripcion(false)
+    
+    // Simular generación de descripción
+    setTimeout(() => {
+      const descripcion = `Excelente ${formData.marca} ${formData.modelo} en perfectas condiciones. Ideal para uso diario con bajo consumo y gran confiabilidad.`
+      setFormData(prev => ({ ...prev, descripcion }))
+      setGenerandoDescripcion(false)
+    }, 2000)
   }
 
-  const subirImagen = async (file: File) => {
-    setSubiendoImagen(true)
-    try {
-      const data = await api.uploadImage(file)
-      
-      if (data.url) {
-        setImagenes(prev => [...prev, data.url])
-        alert('Imagen subida correctamente')
-      } else {
-        alert(data.error || 'Error subiendo imagen')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Error subiendo imagen')
+  const procesarImagen = (file: File) => {
+    console.log('Procesando imagen:', file.name, 'Tamaño:', file.size)
+    
+    if (imagenes.length >= 5) {
+      alert('Máximo 5 imágenes permitidas')
+      return
     }
-    setSubiendoImagen(false)
+    
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert('Imagen muy grande. Máximo 10MB.')
+      return
+    }
+    
+    const img = new window.Image()
+    img.onload = () => {
+      console.log('Dimensiones imagen:', img.width, 'x', img.height)
+      // Siempre abrir editor para optimizar
+      console.log('Abriendo editor para todas las imágenes...')
+      setEditingImage(file)
+      setShowEditor(true)
+    }
+    img.onerror = () => {
+      console.error('Error cargando imagen')
+      alert('Error al cargar la imagen')
+    }
+    img.src = URL.createObjectURL(file)
+  }
+
+  const subirImagenDirecta = (file: File) => {
+    setSubiendoImagen(true)
+    
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new window.Image()
+    
+    img.onload = () => {
+      const maxWidth = 800
+      const maxHeight = 600
+      let { width, height } = img
+      
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width
+        width = maxWidth
+      }
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height
+        height = maxHeight
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      ctx?.drawImage(img, 0, 0, width, height)
+      
+      const compressedImage = canvas.toDataURL('image/jpeg', 0.8)
+      setImagenes(prev => [...prev, compressedImage])
+      setSubiendoImagen(false)
+    }
+    
+    img.src = URL.createObjectURL(file)
+  }
+
+  const handleEditorSave = (editedImage: string) => {
+    setImagenes(prev => [...prev, editedImage])
+    setShowEditor(false)
+    setEditingImage(null)
+  }
+
+  const handleEditorCancel = () => {
+    setShowEditor(false)
+    setEditingImage(null)
   }
 
   const eliminarImagen = (index: number) => {
@@ -70,37 +134,61 @@ export default function FormularioCoche() {
   }
 
   const guardarCoche = async () => {
-    if (!auth.user?.email) {
-      alert('Debes estar autenticado')
-      return
-    }
-
     setGuardando(true)
-    try {
-      // Obtener vendedor por email
-      const vendedores = await api.getVendedores(auth.user.email)
-      const vendedor = vendedores[0]
-
-      if (!vendedor) {
-        alert('Vendedor no encontrado')
-        return
-      }
-
-      await api.createCoche({
-        ...formData,
-        precio: parseFloat(formData.precio),
-        kilometraje: parseInt(formData.kilometraje),
-        imagenes,
-        vendedorId: vendedor.id,
-      })
-
-      alert('Coche publicado correctamente')
-      router.push('/admin')
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Error al guardar')
+    
+    // Crear nuevo coche
+    const nuevoCoche = {
+      id: Date.now().toString(),
+      ...formData,
+      precio: parseFloat(formData.precio) || 0,
+      kilometraje: parseInt(formData.kilometraje) || 0,
+      imagen: imagenes.length > 0 ? imagenes[0] : `https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop&auto=format&q=80`,
+      imagenes: imagenes.length > 0 ? imagenes : [],
+      vendedor: {
+        nombre: user.name || user.firstName || 'Vendedor V&R',
+        telefono: '+52 55 1234 5678',
+        email: user.email || 'info@vrautos.com'
+      },
+      fechaCreacion: new Date().toISOString()
     }
-    setGuardando(false)
+    
+    // Guardar en localStorage con manejo de cuota
+    try {
+      const cochesExistentes = JSON.parse(localStorage.getItem('cars') || '[]')
+      
+      // Si hay más de 50 coches, eliminar los más antiguos
+      if (cochesExistentes.length >= 50) {
+        cochesExistentes.splice(0, 10) // Eliminar los 10 más antiguos
+      }
+      
+      cochesExistentes.push(nuevoCoche)
+      localStorage.setItem('cars', JSON.stringify(cochesExistentes))
+    } catch (error) {
+      if (error instanceof DOMException && error.code === 22) {
+        // Cuota excedida - limpiar datos antiguos
+        console.log('LocalStorage lleno, limpiando automáticamente...')
+        
+        try {
+          const cochesExistentes = JSON.parse(localStorage.getItem('cars') || '[]')
+          // Mantener solo los últimos 20 coches
+          const cochesRecientes = cochesExistentes.slice(-20)
+          cochesRecientes.push(nuevoCoche)
+          localStorage.setItem('cars', JSON.stringify(cochesRecientes))
+        } catch (secondError) {
+          alert('Error: No se pudo guardar el coche. Intenta con menos imágenes.')
+          setGuardando(false)
+          return
+        }
+      } else {
+        throw error
+      }
+    }
+    
+    setTimeout(() => {
+      alert('Coche publicado correctamente')
+      router.push('/coches')
+      setGuardando(false)
+    }, 1000)
   }
 
   return (
@@ -143,7 +231,7 @@ export default function FormularioCoche() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-2">Precio (€)</label>
+          <label className="block text-sm font-medium mb-2">Precio (MXN)</label>
           <input
             type="number"
             value={formData.precio}
@@ -189,20 +277,44 @@ export default function FormularioCoche() {
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">Imagen del Coche</label>
+        <label className="block text-sm font-medium mb-2">Imágenes del Coche (máximo 5)</label>
+        <div className="text-xs text-gray-600 mb-2">
+          📝 Todas las imágenes se abrirán en el editor para optimizar
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.accept = 'image/*'
+            input.onchange = (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0]
+              if (file) {
+                setEditingImage(file)
+                setShowEditor(true)
+              }
+            }
+            input.click()
+          }}
+          className="mb-2 px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200"
+        >
+          🎨 Abrir Editor Manual
+        </button>
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) subirImagen(file)
+              const files = Array.from(e.target.files || [])
+              files.forEach(file => procesarImagen(file))
             }}
             className="hidden"
             id="imagen-upload"
+            disabled={imagenes.length >= 5}
           />
-          <label htmlFor="imagen-upload" className="cursor-pointer">
+          <label htmlFor="imagen-upload" className={`cursor-pointer ${imagenes.length >= 5 ? 'opacity-50' : ''}`}>
             {subiendoImagen ? (
               <div className="flex items-center justify-center">
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -210,7 +322,7 @@ export default function FormularioCoche() {
               </div>
             ) : (
               <span className="text-primary-600 hover:text-primary-700">
-                Subir imagen (se analizará automáticamente)
+                {imagenes.length >= 5 ? 'Máximo 5 imágenes' : `Subir imágenes (${imagenes.length}/5)`}
               </span>
             )}
           </label>
@@ -222,25 +334,54 @@ export default function FormularioCoche() {
           <h3 className="text-sm font-medium mb-2">Imágenes subidas:</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {imagenes.map((url, index) => (
-              <div key={index} className="relative">
-                <Image
+              <div key={index} className="relative group">
+                <img
                   src={url}
                   alt={`Imagen ${index + 1}`}
-                  width={200}
-                  height={150}
-                  className="rounded-lg object-cover"
+                  className="w-full h-32 rounded-lg object-cover"
                 />
-                <button
-                  onClick={() => eliminarImagen(index)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <button
+                    onClick={() => {
+                      // Convertir base64 a File para editar
+                      fetch(url)
+                        .then(res => res.blob())
+                        .then(blob => {
+                          const file = new File([blob], `imagen-${index}.jpg`, { type: 'image/jpeg' })
+                          setEditingImage(file)
+                          setShowEditor(true)
+                          // Eliminar la imagen actual para reemplazarla
+                          eliminarImagen(index)
+                        })
+                    }}
+                    className="bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => eliminarImagen(index)}
+                    className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      <div className="mb-4">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.enSlideshow}
+            onChange={(e) => setFormData(prev => ({ ...prev, enSlideshow: e.target.checked }))}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+          />
+          <span className="text-sm text-gray-700">Incluir en slideshow de la página principal</span>
+        </label>
+      </div>
 
       <button 
         onClick={guardarCoche}
@@ -256,6 +397,15 @@ export default function FormularioCoche() {
           'Publicar Coche'
         )}
       </button>
+      
+      {/* Editor de Imágenes */}
+      {showEditor && editingImage && (
+        <ImageEditor
+          imageFile={editingImage}
+          onSave={handleEditorSave}
+          onCancel={handleEditorCancel}
+        />
+      )}
     </div>
   )
 }

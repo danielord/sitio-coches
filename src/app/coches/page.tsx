@@ -20,11 +20,93 @@ export default function CochesPage() {
   const { addToCompare } = useComparator()
 
   useEffect(() => {
-    const loadCoches = async () => {
+    const loadCoches = () => {
       try {
-        const data = await api.getCoches()
-        setCoches(data)
-        setFilteredCoches(data)
+        // Limpiar localStorage periódicamente
+        const lastCleanup = localStorage.getItem('lastCleanup')
+        const now = Date.now()
+        if (!lastCleanup || now - parseInt(lastCleanup) > 24 * 60 * 60 * 1000) {
+          // Limpiar cada 24 horas
+          const cars = JSON.parse(localStorage.getItem('cars') || '[]')
+          if (cars.length > 30) {
+            const recentCars = cars.slice(-30)
+            localStorage.setItem('cars', JSON.stringify(recentCars))
+          }
+          localStorage.setItem('lastCleanup', now.toString())
+        }
+        
+        const data = JSON.parse(localStorage.getItem('cars') || '[]')
+        console.log('Coches cargados desde localStorage:', data)
+        console.log('Total coches encontrados:', data.length)
+        
+        // Debug: mostrar información de vendedores
+        const currentUser = localStorage.getItem('user')
+        if (currentUser) {
+          const user = JSON.parse(currentUser)
+          console.log('Usuario actual:', user.email)
+          
+          const userCars = data.filter((car: any) => car.vendedor?.email === user.email)
+          console.log('Coches del usuario actual:', userCars.length)
+        }
+        
+        data.forEach((car: any, index: number) => {
+          console.log(`Coche ${index + 1}:`, {
+            id: car.id,
+            marca: car.marca,
+            modelo: car.modelo,
+            vendedor: car.vendedor
+          })
+        })
+        
+        // Si no hay coches, agregar algunos de prueba
+        if (data.length === 0) {
+          const cochesDemo = [
+            {
+              id: 'demo-1',
+              marca: 'Toyota',
+              modelo: 'Corolla',
+              año: 2020,
+              precio: 280000,
+              kilometraje: 45000,
+              combustible: 'Gasolina',
+              transmision: 'Manual',
+              color: 'Blanco',
+              descripcion: 'Excelente estado, un solo dueño',
+              imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
+              vendedor: {
+                nombre: 'Demo V&R',
+                telefono: '+52 55 1234 5678',
+                email: 'demo@vrautos.com'
+              },
+              fechaCreacion: new Date().toISOString()
+            },
+            {
+              id: 'demo-2',
+              marca: 'Honda',
+              modelo: 'Civic',
+              año: 2019,
+              precio: 320000,
+              kilometraje: 38000,
+              combustible: 'Gasolina',
+              transmision: 'Automática',
+              color: 'Negro',
+              descripcion: 'Seminuevo, excelentes condiciones',
+              imagen: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=250&fit=crop',
+              vendedor: {
+                nombre: 'Demo V&R',
+                telefono: '+52 55 1234 5678',
+                email: 'demo@vrautos.com'
+              },
+              fechaCreacion: new Date().toISOString()
+            }
+          ]
+          localStorage.setItem('cars', JSON.stringify(cochesDemo))
+          setCoches(cochesDemo)
+          setFilteredCoches(cochesDemo)
+        } else {
+          setCoches(data)
+          setFilteredCoches(data)
+        }
       } catch (error) {
         console.error('Error loading coches:', error)
       }
@@ -86,8 +168,8 @@ export default function CochesPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <Link href="/" className="flex items-center">
-                <Car className="h-8 w-8 text-primary-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">SitioCoches</span>
+                <img src="/logo.jpg" alt="V&R Autos" className="h-10 w-10 rounded-full" />
+                <span className="ml-2 text-xl font-bold text-gray-900">V&R Autos</span>
               </Link>
             </div>
           </div>
@@ -110,8 +192,8 @@ export default function CochesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center">
-              <Car className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">SitioCoches</span>
+              <img src="/logo.jpg" alt="V&R Autos" className="h-10 w-10 rounded-full" />
+              <span className="ml-2 text-xl font-bold text-gray-900">V&R Autos</span>
             </Link>
             <Link href="/admin" className="btn-primary">Admin</Link>
           </div>
@@ -125,7 +207,7 @@ export default function CochesPage() {
 
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Coches Disponibles</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Coches Disponibles - V&R Autos 2024</h1>
             <p className="text-gray-600">
               {filteredCoches.length} coches encontrados
             </p>
@@ -136,7 +218,45 @@ export default function CochesPage() {
           <AnimatedSection className="text-center py-12">
             <Car className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No hay coches disponibles</h3>
-            <p className="text-gray-600">Prueba con otros filtros o vuelve más tarde</p>
+            <p className="text-gray-600 mb-4">Prueba con otros filtros o vuelve más tarde</p>
+            <button
+              onClick={() => {
+                const userData = localStorage.getItem('user')
+                if (userData) {
+                  const user = JSON.parse(userData)
+                  const allCars = JSON.parse(localStorage.getItem('cars') || '[]')
+                  
+                  const userCars = [{
+                    id: `user-${Date.now()}-1`,
+                    marca: 'Nissan',
+                    modelo: 'Sentra',
+                    año: 2021,
+                    precio: 250000,
+                    kilometraje: 35000,
+                    combustible: 'Gasolina',
+                    transmision: 'Automática',
+                    color: 'Gris',
+                    descripcion: 'Excelente estado, mantenimiento al día',
+                    imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
+                    vendedor: {
+                      nombre: user.firstName || user.name || 'Usuario V&R',
+                      telefono: '+52 55 1234 5678',
+                      email: user.email
+                    },
+                    fechaCreacion: new Date().toISOString(),
+                    enSlideshow: false
+                  }]
+                  
+                  localStorage.setItem('cars', JSON.stringify([...allCars, ...userCars]))
+                  window.location.reload()
+                } else {
+                  alert('Debes iniciar sesión para recuperar tus coches')
+                }
+              }}
+              className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-sm"
+            >
+              🔄 Recuperar mis coches
+            </button>
           </AnimatedSection>
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -168,12 +288,10 @@ export default function CochesPage() {
                   </div>
 
                   <div className="h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
-                    {coche.imagenes.length > 0 ? (
-                      <Image
-                        src={coche.imagenes[0]}
+                    {coche.imagen ? (
+                      <img
+                        src={coche.imagen}
                         alt={`${coche.marca} ${coche.modelo}`}
-                        width={300}
-                        height={200}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
@@ -188,10 +306,10 @@ export default function CochesPage() {
                       {coche.kilometraje.toLocaleString()} km • {coche.combustible}
                     </p>
                     <p className="text-primary-600 font-bold text-xl mt-2">
-                      €{coche.precio.toLocaleString()}
+                      ${coche.precio.toLocaleString()} MXN
                     </p>
                     <Link
-                      href={`/coches/${coche.id}`}
+                      href={`/coche?id=${coche.id}`}
                       className="w-full mt-3 btn-primary text-center block transform hover:scale-105 transition-transform duration-200"
                     >
                       Ver Detalles
