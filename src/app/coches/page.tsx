@@ -29,28 +29,9 @@ export default function CochesPage() {
         setFilteredCoches(data)
       } catch (error) {
         console.error('Error loading coches:', error)
-        // Fallback a datos demo si falla la API
-        const cochesDemo = [
-          {
-            id: 'demo-1',
-            marca: 'Toyota',
-            modelo: 'Corolla',
-            año: 2020,
-            precio: 280000,
-            kilometraje: 45000,
-            combustible: 'Gasolina',
-            transmision: 'Manual',
-            color: 'Blanco',
-            descripcion: 'Excelente estado, un solo dueño',
-            imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
-            vendedor_nombre: 'Demo V&R',
-            vendedor_telefono: '+52 55 1234 5678',
-            vendedor_email: 'demo@vrautos.com',
-            created_at: new Date().toISOString()
-          }
-        ]
-        setCoches(cochesDemo)
-        setFilteredCoches(cochesDemo)
+        alert('Error conectando con la base de datos. Verifica que D1 esté configurado.')
+        setCoches([])
+        setFilteredCoches([])
       }
       setLoading(false)
     }
