@@ -1,0 +1,8 @@
+name = "vrautos"
+compatibility_date = "2024-10-21"
+pages_build_output_dir = "out"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vrautos-db"
+database_id = "2aabb57f-b26a-42c5-8686-eef1c9e1a1c8"
