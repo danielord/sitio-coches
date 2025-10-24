@@ -1,13 +1,17 @@
 export function onRequestGet(context) {
+  console.log('GET /api/cars called')
+  
   return context.env.DB.prepare('SELECT * FROM cars ORDER BY created_at DESC')
     .all()
     .then(function(result) {
+      console.log('Cars found:', result.results.length)
       return new Response(JSON.stringify({ cars: result.results }), {
         headers: { 'Content-Type': 'application/json' }
       })
     })
     .catch(function(error) {
-      return new Response(JSON.stringify({ error: 'Error fetching cars' }), {
+      console.error('Error fetching cars:', error)
+      return new Response(JSON.stringify({ error: 'Error fetching cars: ' + error.message }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -15,8 +19,11 @@ export function onRequestGet(context) {
 }
 
 export function onRequestPost(context) {
+  console.log('POST /api/cars called')
+  
   return context.request.json()
     .then(function(carData) {
+      console.log('Creating car with data:', carData)
       var carId = 'car-' + Date.now()
       var vendedor = carData.vendedor || {}
       
