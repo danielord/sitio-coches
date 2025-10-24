@@ -20,95 +20,37 @@ export default function CochesPage() {
   const { addToCompare } = useComparator()
 
   useEffect(() => {
-    const loadCoches = () => {
+    const loadCoches = async () => {
       try {
-        // Limpiar localStorage periódicamente
-        const lastCleanup = localStorage.getItem('lastCleanup')
-        const now = Date.now()
-        if (!lastCleanup || now - parseInt(lastCleanup) > 24 * 60 * 60 * 1000) {
-          // Limpiar cada 24 horas
-          const cars = JSON.parse(localStorage.getItem('cars') || '[]')
-          if (cars.length > 30) {
-            const recentCars = cars.slice(-30)
-            localStorage.setItem('cars', JSON.stringify(recentCars))
-          }
-          localStorage.setItem('lastCleanup', now.toString())
-        }
-        
-        const data = JSON.parse(localStorage.getItem('cars') || '[]')
-        console.log('Coches cargados desde localStorage:', data)
-        console.log('Total coches encontrados:', data.length)
-        
-        // Debug: mostrar información de vendedores
-        const currentUser = localStorage.getItem('user')
-        if (currentUser) {
-          const user = JSON.parse(currentUser)
-          console.log('Usuario actual:', user.email)
-          
-          const userCars = data.filter((car: any) => car.vendedor?.email === user.email)
-          console.log('Coches del usuario actual:', userCars.length)
-        }
-        
-        data.forEach((car: any, index: number) => {
-          console.log(`Coche ${index + 1}:`, {
-            id: car.id,
-            marca: car.marca,
-            modelo: car.modelo,
-            vendedor: car.vendedor
-          })
-        })
-        
-        // Si no hay coches, agregar algunos de prueba
-        if (data.length === 0) {
-          const cochesDemo = [
-            {
-              id: 'demo-1',
-              marca: 'Toyota',
-              modelo: 'Corolla',
-              año: 2020,
-              precio: 280000,
-              kilometraje: 45000,
-              combustible: 'Gasolina',
-              transmision: 'Manual',
-              color: 'Blanco',
-              descripcion: 'Excelente estado, un solo dueño',
-              imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
-              vendedor: {
-                nombre: 'Demo V&R',
-                telefono: '+52 55 1234 5678',
-                email: 'demo@vrautos.com'
-              },
-              fechaCreacion: new Date().toISOString()
-            },
-            {
-              id: 'demo-2',
-              marca: 'Honda',
-              modelo: 'Civic',
-              año: 2019,
-              precio: 320000,
-              kilometraje: 38000,
-              combustible: 'Gasolina',
-              transmision: 'Automática',
-              color: 'Negro',
-              descripcion: 'Seminuevo, excelentes condiciones',
-              imagen: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=250&fit=crop',
-              vendedor: {
-                nombre: 'Demo V&R',
-                telefono: '+52 55 1234 5678',
-                email: 'demo@vrautos.com'
-              },
-              fechaCreacion: new Date().toISOString()
-            }
-          ]
-          localStorage.setItem('cars', JSON.stringify(cochesDemo))
-          setCoches(cochesDemo)
-          setFilteredCoches(cochesDemo)
-        } else {
-          setCoches(data)
-          setFilteredCoches(data)
-        }
+        const response = await api.getCoches()
+        const data = response.cars || []
+        console.log('Coches cargados desde API:', data)
+        setCoches(data)
+        setFilteredCoches(data)
       } catch (error) {
         console.error('Error loading coches:', error)
+        // Fallback a datos demo si falla la API
+        const cochesDemo = [
+          {
+            id: 'demo-1',
+            marca: 'Toyota',
+            modelo: 'Corolla',
+            año: 2020,
+            precio: 280000,
+            kilometraje: 45000,
+            combustible: 'Gasolina',
+            transmision: 'Manual',
+            color: 'Blanco',
+            descripcion: 'Excelente estado, un solo dueño',
+            imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
+            vendedor_nombre: 'Demo V&R',
+            vendedor_telefono: '+52 55 1234 5678',
+            vendedor_email: 'demo@vrautos.com',
+            created_at: new Date().toISOString()
+          }
+        ]
+        setCoches(cochesDemo)
+        setFilteredCoches(cochesDemo)
       }
       setLoading(false)
     }

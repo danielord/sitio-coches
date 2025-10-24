@@ -136,59 +136,29 @@ export default function FormularioCoche() {
   const guardarCoche = async () => {
     setGuardando(true)
     
-    // Crear nuevo coche
-    const nuevoCoche = {
-      id: Date.now().toString(),
-      ...formData,
-      precio: parseFloat(formData.precio) || 0,
-      kilometraje: parseInt(formData.kilometraje) || 0,
-      imagen: imagenes.length > 0 ? imagenes[0] : `https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop&auto=format&q=80`,
-      imagenes: imagenes.length > 0 ? imagenes : [],
-      vendedor: {
-        nombre: user.name || user.firstName || 'Vendedor V&R',
-        telefono: '+52 55 1234 5678',
-        email: user.email || 'info@vrautos.com'
-      },
-      fechaCreacion: new Date().toISOString()
-    }
-    
-    // Guardar en localStorage con manejo de cuota
     try {
-      const cochesExistentes = JSON.parse(localStorage.getItem('cars') || '[]')
-      
-      // Si hay más de 50 coches, eliminar los más antiguos
-      if (cochesExistentes.length >= 50) {
-        cochesExistentes.splice(0, 10) // Eliminar los 10 más antiguos
-      }
-      
-      cochesExistentes.push(nuevoCoche)
-      localStorage.setItem('cars', JSON.stringify(cochesExistentes))
-    } catch (error) {
-      if (error instanceof DOMException && error.code === 22) {
-        // Cuota excedida - limpiar datos antiguos
-        console.log('LocalStorage lleno, limpiando automáticamente...')
-        
-        try {
-          const cochesExistentes = JSON.parse(localStorage.getItem('cars') || '[]')
-          // Mantener solo los últimos 20 coches
-          const cochesRecientes = cochesExistentes.slice(-20)
-          cochesRecientes.push(nuevoCoche)
-          localStorage.setItem('cars', JSON.stringify(cochesRecientes))
-        } catch (secondError) {
-          alert('Error: No se pudo guardar el coche. Intenta con menos imágenes.')
-          setGuardando(false)
-          return
+      const nuevoCoche = {
+        ...formData,
+        precio: parseFloat(formData.precio) || 0,
+        kilometraje: parseInt(formData.kilometraje) || 0,
+        imagen: imagenes.length > 0 ? imagenes[0] : `https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop&auto=format&q=80`,
+        imagenes: imagenes.length > 0 ? imagenes : [],
+        vendedor: {
+          nombre: user.name || user.firstName || 'Vendedor V&R',
+          telefono: '+52 55 1234 5678',
+          email: user.email || 'info@vrautos.com'
         }
-      } else {
-        throw error
       }
-    }
-    
-    setTimeout(() => {
+      
+      await api.createCoche(nuevoCoche)
       alert('Coche publicado correctamente')
       router.push('/coches')
+    } catch (error) {
+      console.error('Error guardando coche:', error)
+      alert('Error al publicar el coche. Intenta de nuevo.')
+    } finally {
       setGuardando(false)
-    }, 1000)
+    }
   }
 
   return (
