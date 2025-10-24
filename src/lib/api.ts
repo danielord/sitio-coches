@@ -1,4 +1,4 @@
-const API_URL = process.env.API_URL || 'http://localhost:8787'
+const API_URL = typeof window !== 'undefined' ? window.location.origin : 'https://vr-autos2.pages.dev'
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const url = `${API_URL}${endpoint}`
