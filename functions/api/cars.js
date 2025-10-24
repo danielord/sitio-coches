@@ -21,7 +21,7 @@ export function onRequestPost(context) {
       var vendedor = carData.vendedor || {}
       
       return context.env.DB.prepare(
-        'INSERT INTO cars (id, marca, modelo, año, precio, kilometraje, combustible, transmision, color, descripcion, imagen, imagenes, vendedor_nombre, vendedor_telefono, vendedor_email, en_slideshow, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO cars (id, marca, modelo, año, precio, kilometraje, combustible, transmision, color, descripcion, imagen, imagenes, vendedor_id, vendedor_nombre, vendedor_telefono, vendedor_email, en_slideshow, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).bind(
         carId,
         carData.marca,
@@ -35,6 +35,7 @@ export function onRequestPost(context) {
         carData.descripcion,
         carData.imagen,
         JSON.stringify(carData.imagenes || []),
+        'demo-user-1',
         vendedor.nombre || 'Usuario V&R',
         vendedor.telefono || '+52 55 1234 5678',
         vendedor.email || 'demo@vrautos.com',

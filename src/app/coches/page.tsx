@@ -162,14 +162,9 @@ export default function CochesPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">No hay coches disponibles</h3>
             <p className="text-gray-600 mb-4">Prueba con otros filtros o vuelve más tarde</p>
             <button
-              onClick={() => {
-                const userData = localStorage.getItem('user')
-                if (userData) {
-                  const user = JSON.parse(userData)
-                  const allCars = JSON.parse(localStorage.getItem('cars') || '[]')
-                  
-                  const userCars = [{
-                    id: `user-${Date.now()}-1`,
+              onClick={async () => {
+                try {
+                  await api.createCoche({
                     marca: 'Nissan',
                     modelo: 'Sentra',
                     año: 2021,
@@ -178,21 +173,17 @@ export default function CochesPage() {
                     combustible: 'Gasolina',
                     transmision: 'Automática',
                     color: 'Gris',
-                    descripcion: 'Excelente estado, mantenimiento al día',
-                    imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop',
+                    descripcion: 'Coche de prueba',
+                    imagen: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400',
                     vendedor: {
-                      nombre: user.firstName || user.name || 'Usuario V&R',
+                      nombre: 'Usuario V&R',
                       telefono: '+52 55 1234 5678',
-                      email: user.email
-                    },
-                    fechaCreacion: new Date().toISOString(),
-                    enSlideshow: false
-                  }]
-                  
-                  localStorage.setItem('cars', JSON.stringify([...allCars, ...userCars]))
+                      email: 'demo@vrautos.com'
+                    }
+                  })
                   window.location.reload()
-                } else {
-                  alert('Debes iniciar sesión para recuperar tus coches')
+                } catch (error) {
+                  alert('Error creando coche de prueba')
                 }
               }}
               className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-sm"
@@ -245,7 +236,7 @@ export default function CochesPage() {
                       {coche.marca} {coche.modelo} {coche.año}
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      {coche.kilometraje.toLocaleString()} km • {coche.combustible}
+                      {coche.kilometraje?.toLocaleString() || 0} km • {coche.combustible}
                     </p>
                     <p className="text-primary-600 font-bold text-xl mt-2">
                       ${coche.precio.toLocaleString()} MXN
