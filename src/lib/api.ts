@@ -22,12 +22,12 @@ export const api = {
   // Coches
   getCoches: (params?: Record<string, string>) => {
     const query = params ? '?' + new URLSearchParams(params).toString() : ''
-    return apiRequest(`/api/coches${query}`)
+    return apiRequest(`/api/d1/cars${query}`)
   },
   
-  getCoche: (id: string) => apiRequest(`/api/coches/${id}`),
+  getCoche: (id: string) => apiRequest(`/api/d1/cars/${id}`),
   
-  createCoche: (data: any) => apiRequest('/api/coches', {
+  createCoche: (data: any) => apiRequest('/api/d1/cars', {
     method: 'POST',
     body: JSON.stringify(data),
   }),

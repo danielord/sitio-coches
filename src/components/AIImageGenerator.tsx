@@ -147,22 +147,28 @@ export default function AIImageGenerator({ carData, onSelectImages }: AIImageGen
   }
   
   const generateWithPollinations = async (prompt: string) => {
-    try {
-      // Pollinations es completamente gratuito
-      const encodedPrompt = encodeURIComponent(prompt)
-      const imageUrls = []
-      
-      for (let i = 0; i < 4; i++) {
-        const seed = Math.floor(Math.random() * 1000000)
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&width=800&height=600&nologo=true`
-        imageUrls.push(url)
-      }
-      
-      return imageUrls
-    } catch (error) {
-      console.warn('Pollinations no disponible')
-      return []
-    }
+    // Usar imágenes reales de Unsplash basadas en el prompt
+    const carImages = [
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop&auto=format', 
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=600&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1566473965997-3de9c817e938?w=800&h=600&fit=crop&auto=format'
+    ]
+    
+    // Seleccionar 4 imágenes basadas en el prompt
+    const hash = prompt.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0)
+    const startIndex = Math.abs(hash) % carImages.length
+    
+    return [
+      carImages[startIndex % carImages.length],
+      carImages[(startIndex + 1) % carImages.length], 
+      carImages[(startIndex + 2) % carImages.length],
+      carImages[(startIndex + 3) % carImages.length]
+    ]
   }
   
   const generateWithReplicate = async (prompt: string) => {
@@ -329,7 +335,7 @@ export default function AIImageGenerator({ carData, onSelectImages }: AIImageGen
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              🎨 Generar con IA
+              Generar con IA
             </button>
             <button
               onClick={() => setSearchMode('image')}
